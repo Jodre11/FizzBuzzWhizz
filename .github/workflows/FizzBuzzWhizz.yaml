@@ -1,0 +1,91 @@
+name: .NET
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Fetch all history for all tags and branches
+        run: git fetch --prune --unshallow
+
+      - name: Install GitVersion
+        uses: gittools/actions/gitversion/setup@v0.9.11
+        with:
+          versionSpec: '5.6.x'
+
+      - name: Determine Version
+        id: gitversion
+        uses: gittools/actions/gitversion/execute@v0.9.11
+        with:
+          useConfigFile: true
+
+      - name: Setup .NET Core
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: 6.x.x
+
+      - name: Install dependencies
+        run: dotnet restore
+
+      - name: Register the package feed
+        run: dotnet nuget add source --username NetMaximum --password ${{ secrets.GITHUB_TOKEN }} --store-password-in-clear-text --name github "https://nuget.pkg.github.com/NetMaximum/index.json"
+
+      - name: Build
+        run: dotnet build ./FizzBuzzWhizz.sln --configuration Release --no-restore /p:Version=$GITVERSION_MAJORMINORPATCH
+
+      - name: Test
+        run: dotnet test ./FizzBuzzWhizz.sln -p:CollectCoverage=true -p:CoverletOutput=TestResults/ -p:CoverletOutputFormat=opencover --no-build --verbosity normal --no-restore -c Release
+
+      - name: Pack
+        if: github.ref == 'refs/heads/main'
+        run: dotnet pack src/FizzBuzzWhizz/FizzBuzzWhizz.csproj --configuration Release --no-restore --verbosity normal --output nupkgs -p:PackageVersion=$GITVERSION_MAJORMINORPATCH
+
+      - name: Pack
+        if: github.event_name == 'pull_request'
+        run: dotnet pack src/FizzBuzzWhizz/FizzBuzzWhizz.csproj --configuration Release --no-restore --verbosity normal --output nupkgs -p:PackageVersion=$GITVERSION_NUGETVERSION
+
+
+
+      - name: Push
+        run: dotnet nuget push nupkgs/*.nupkg --api-key ${{ secrets.GITHUB_TOKEN }} --source "github"
+
+      - uses: actions/upload-artifact@v2
+        with:
+          name: buildartifacts
+          path: ./nupkgs/
+
+      - name: Codecov
+        uses: codecov/codecov-action@v1
+      
+    outputs:
+      version: ${{ steps.gitversion.outputs.majorMinorPatch }}
+
+  pushtonuget:
+    name: PushToNuget
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment: Nuget
+    needs: build
+    steps:
+      - name: Download a Build Artifact
+        uses: actions/download-artifact@v2.0.10
+        with:
+          # Artifact name
+          name: buildartifacts
+          
+      - name: Create a release
+        uses: softprops/action-gh-release@v0.1.14
+        with:
+          tag_name: v${{ needs.build.outputs.version }}
+          generate_release_notes: true
+          
+      - name: Push
+        run: dotnet nuget push *.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source "nuget.org"
