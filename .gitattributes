@@ -185,7 +185,7 @@ Procfile text
 # Eclipse
 *.project text
 *.classpath text
-*.prefs
+*.prefs text
 
 ##### Language
 # .Net
@@ -196,3 +196,8 @@ Procfile text
 *.cpp text
 *.h text
 *.fs text
+
+*.verified.txt text eol=lf working-tree-encoding=UTF-8
+*.verified.xml text eol=lf working-tree-encoding=UTF-8
+*.verified.json text eol=lf working-tree-encoding=UTF-8
+*.verified.bin binary
