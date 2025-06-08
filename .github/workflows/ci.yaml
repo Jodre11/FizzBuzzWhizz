@@ -22,7 +22,7 @@ jobs:
         run: dotnet build Tests/FizzBuzzWhizz.Tests/ --configuration Release
 
       - name: Run tests
-        run: dotnet test Tests/FizzBuzzWhizz.Tests/ --no-build --verbosity normal --logger "trx;LogFileName=TestResults/results.trx"
+        run: dotnet test Tests/FizzBuzzWhizz.Tests/ --no-build --configuration Release -- --results-directory TestResults/ --report-trx"
 
       - name: Upload test results
         if: always()
