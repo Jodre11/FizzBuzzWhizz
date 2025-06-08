@@ -76,14 +76,14 @@ public partial class FizzBuzz
         var method = instance.GetType().GetMethod("Identity");
         Assert.NotNull(method);
 
-        Assert.Equal(method.Invoke(instance, [ 0L ] ), "0");
-        Assert.Equal(method.Invoke(instance, [ 1L ] ), "1");
-        Assert.Equal(method.Invoke(instance, [ 3L ] ), "Fizz");
-        Assert.Equal(method.Invoke(instance, [ 5L ] ), "Buzz");
-        Assert.Equal(method.Invoke(instance, [ 15L ] ), "FizzBuzz");
-        Assert.Equal(method.Invoke(instance, [ 6L ] ), "Fizz");
-        Assert.Equal(method.Invoke(instance, [ 10L ] ), "Buzz");
-        Assert.Equal(method.Invoke(instance, [ 30L ] ), "FizzBuzz");
-        Assert.Equal(method.Invoke(instance, [ 31L ] ), "31");
+        Assert.Equal("0", method.Invoke(instance, [ 0L ] ));
+        Assert.Equal("1", method.Invoke(instance, [ 1L ] ));
+        Assert.Equal("Fizz", method.Invoke(instance, [ 3L ] ));
+        Assert.Equal("Buzz", method.Invoke(instance, [ 5L ] ));
+        Assert.Equal("FizzBuzz", method.Invoke(instance, [ 15L ] ));
+        Assert.Equal("Fizz", method.Invoke(instance, [ 6L ] ));
+        Assert.Equal("Buzz", method.Invoke(instance, [ 10L ] ));
+        Assert.Equal("FizzBuzz", method.Invoke(instance, [ 30L ] ));
+        Assert.Equal("31", method.Invoke(instance, [ 31L ] ));
     }
 }
