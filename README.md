@@ -1,29 +1,64 @@
-# Roslyn Source Generators Sample
+# FizzBuzzWhizz
 
-A set of three projects that illustrates Roslyn source generators. Enjoy this template to learn from and modify source generators for your own needs.
+**FizzBuzzWhizz** is a C# source generator that automatically creates methods for the classic FizzBuzz problem (and similar patterns) using a simple attribute. By annotating your partial class with the `FizzBuzzWhizz` attribute, you can generate methods that return custom strings for numbers divisible by specified values.
 
-## Content
-### FizzBuzzWhizz
-A .NET Standard project with implementations of sample source generators.
-**You must build this project to see the result (generated code) in the IDE.**
+## Repository
 
-- [SampleSourceGenerator.cs](SampleSourceGenerator.cs): A source generator that creates C# classes based on a text file (in this case, Domain Driven Design ubiquitous language registry).
-- [SampleIncrementalSourceGenerator.cs](SampleIncrementalSourceGenerator.cs): A source generator that creates a custom report based on class properties. The target class should be annotated with the `Generators.ReportAttribute` attribute.
+[GitHub - Jodre11/FizzBuzzWhizz](https://github.com/Jodre11/FizzBuzzWhizz)
 
-### FizzBuzzWhizz.Sample
-A project that references source generators. Note the parameters of `ProjectReference` in [FizzBuzzWhizz.Sample.csproj](../FizzBuzzWhizz.Sample/FizzBuzzWhizz.Sample.csproj), they make sure that the project is referenced as a set of source generators. 
+## Purpose
 
-### FizzBuzzWhizz.Tests
-Unit tests for source generators. The easiest way to develop language-related features is to start with unit tests.
+This project demonstrates how to use C# source generators to reduce boilerplate code for repetitive logic, such as FizzBuzz. It allows you to define the rules declaratively via an attribute, and the generator will create the necessary methods at compile time.
 
-## How To?
-### How to debug?
-- Use the [launchSettings.json](Properties/launchSettings.json) profile.
-- Debug tests.
+## Usage
 
-### How can I determine which syntax nodes I should expect?
-Consider using the Roslyn Visualizer toolwindow, witch allow you to observe syntax tree.
+1. **Install the NuGet Package**
 
-### How to learn more about wiring source generators?
-Watch the walkthrough video: [Let’s Build an Incremental Source Generator With Roslyn, by Stefan Pölz](https://youtu.be/azJm_Y2nbAI)
-The complete set of information is available in [Source Generators Cookbook](https://github.com/dotnet/roslyn/blob/main/docs/features/source-generators.cookbook.md).
+   Add the `FizzBuzzWhizz` package to your project:
+
+2. **Annotate Your Partial Class**
+
+   Use the `FizzBuzzWhizz` attribute on a partial class to specify the words and divisors:
+
+   ```csharp
+   using FizzBuzzWhizz;
+
+   [FizzBuzzWhizz("Fizz", "3", "Buzz", "5")]
+   public partial class FizzBuzz
+   {
+   }
+   ```
+
+    - The first argument is the word for the first divisor (e.g., `"Fizz"` for 3).
+    - The second argument is the first divisor (e.g., `"3"`).
+    - The third argument is the word for the second divisor (e.g., `"Buzz"` for 5).
+    - The fourth argument is the second divisor (e.g., `"5"`").
+
+3. **Use the Generated Method**
+
+   After building your project, the generator will add an `Identity` method to your class:
+
+   ```csharp
+   var fizzBuzz = new FizzBuzz();
+   Console.WriteLine(fizzBuzz.Identity(15)); // Output: FizzBuzz
+   Console.WriteLine(fizzBuzz.Identity(3));  // Output: Fizz
+   Console.WriteLine(fizzBuzz.Identity(5));  // Output: Buzz
+   Console.WriteLine(fizzBuzz.Identity(7));  // Output: 7
+   ```
+
+## How It Works
+
+- The source generator scans your code for partial classes decorated with the `FizzBuzzWhizz` attribute.
+- For each matching class, it generates an `Identity(long value)` method at compile time.
+- The generated method checks if the input value is divisible by the specified divisors:
+    - If divisible by both, it returns the concatenated words.
+    - If divisible by only one, it returns the corresponding word.
+    - If divisible by neither, it returns the number as a string.
+
+## Contributing
+
+Contributions are welcome! Please open issues or pull requests for improvements or bug fixes.
+
+## License
+
+This project is licensed under the MIT License. See the `LICENSE` file for details.
