@@ -2,7 +2,7 @@
 
     <PropertyGroup>
         <TargetFramework>netstandard2.0</TargetFramework>
-        <IsPackable>false</IsPackable>
+        <IsPackable>true</IsPackable>
         <Nullable>enable</Nullable>
         <LangVersion>latest</LangVersion>
 
@@ -11,6 +11,8 @@
 
         <RootNamespace>FizzBuzzWhizz</RootNamespace>
         <PackageId>FizzBuzzWhizz</PackageId>
+        <OutputType>Library</OutputType>
+        <Authors>FizzBuzzWhizz Contributors</Authors>
     </PropertyGroup>
 
     <ItemGroup>
