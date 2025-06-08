@@ -18,14 +18,8 @@ jobs:
           dotnet-version: 9
           dotnet-quality: ga
 
-      - name: Restore dependencies
-        run: dotnet restore FizzBuzzWhizz/
-
-      - name: Build project
-        run: dotnet build FizzBuzzWhizz/ --configuration Release --no-restore
-
       - name: Run tests
-        run: dotnet test FizzBuzzWhizz.Tests/ --configuration Release --no-build --verbosity normal --logger "xunit;LogFilePath=TestResults/results.xml"
+        run: dotnet test FizzBuzzWhizz.Tests/ --verbosity normal --logger "trx;LogFileName=TestResults/results.trx"
 
       - name: Upload test results
         if: always()
