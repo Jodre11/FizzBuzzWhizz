@@ -38,19 +38,13 @@ jobs:
           dotnet-version: 9
           dotnet-quality: ga
 
-      - name: Create packages directory
-        run: mkdir -p packages
-
       - name: Generate NuGet package
         run: |
           dotnet pack FizzBuzzWhizz/ \
           --configuration Release \
           -p:PackageVersion=${{ needs.generate-version.outputs.new_version }} \
-          -p:RepositoryUrl=https://https://github.com/Jodre11/FizzBuzzWhizz \
+          -p:RepositoryUrl=https://github.com/Jodre11/FizzBuzzWhizz \
           -o packages
-
-      - name: List package directory contents
-        run: ls -l packages
 
       - name: Publish NuGet package
         run: dotnet nuget push packages/*.nupkg --api-key ${{ secrets.PUSH_NUGET }} --source https://nuget.pkg.github.com/Jodre11/index.json
