@@ -19,14 +19,14 @@ jobs:
           dotnet-quality: ga
 
       - name: Run tests
-        run: dotnet test FizzBuzzWhizz.Tests/ --verbosity normal --logger "trx;LogFileName=TestResults/results.trx"
+        run: dotnet test Tests/FizzBuzzWhizz.Tests/ --verbosity normal --logger "trx;LogFileName=TestResults/results.trx"
 
       - name: Upload test results
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: test-results
-          path: FizzBuzzWhizz.Tests/TestResults/
+          path: Tests/FizzBuzzWhizz.Tests/TestResults/
 
   generate-version:
     runs-on: ubuntu-latest
