@@ -55,6 +55,32 @@ This project demonstrates how to use C# source generators to reduce boilerplate 
     - If divisible by only one, it returns the corresponding word.
     - If divisible by neither, it returns the number as a string.
 
+## Build & Run
+
+1. **Clone the Repository**
+
+   ```sh
+   git clone https://github.com/Jodre11/FizzBuzzWhizz.git
+   cd FizzBuzzWhizz
+   ```
+2. **Build the Project**
+
+   The tests and sample require [.NET 9 SDK](https://dotnet.microsoft.com/en-us/download/dotnet/9.0).
+
+   ```sh
+   dotnet build
+   ```
+3. **Run the Tests**
+
+   ```sh
+   cd FizzBuzzWhizz.Tests
+   dotnet test
+   ```
+4. **Sample**
+
+    The sample project demonstrates how to use the source generator in a console application.
+You can run it to see the generated methods in action.
+   
 ## Contributing
 
 Contributions are welcome! Please open issues or pull requests for improvements or bug fixes.
