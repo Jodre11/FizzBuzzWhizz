@@ -49,5 +49,8 @@ jobs:
           -p:RepositoryUrl=https://https://github.com/Jodre11/FizzBuzzWhizz \
           -o packages
 
+      - name: List package directory contents
+        run: ls -l packages
+
       - name: Publish NuGet package
         run: dotnet nuget push packages/*.nupkg --api-key ${{ secrets.PUSH_NUGET }} --source https://nuget.pkg.github.com/Jodre11/index.json
