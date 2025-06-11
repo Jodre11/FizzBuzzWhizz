@@ -3,7 +3,11 @@
     <PropertyGroup>
         <TargetFramework>net9.0</TargetFramework>
         <Nullable>enable</Nullable>
+        <ImplicitUsings>enable</ImplicitUsings>
         <RootNamespace>FizzBuzzWhizz.Sample</RootNamespace>
+        <PublishAot>true</PublishAot>
+        <IsAotCompatible>true</IsAotCompatible>
+        <OutputType>Exe</OutputType>
     </PropertyGroup>
 
     <ItemGroup>
@@ -11,7 +15,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <None Remove="DDD.UbiquitousLanguageRegistry.txt"/>
+      <PackageReference Include="BenchmarkDotNet" Version="0.15.1" />
     </ItemGroup>
 
 </Project>
