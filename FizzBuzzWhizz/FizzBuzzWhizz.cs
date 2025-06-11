@@ -70,64 +70,76 @@ public class {AttributeName} : System.Attribute
     /// </summary>
     /// <param name="context">Syntax context, based on CreateSyntaxProvider predicate</param>
     /// <returns>The specific cast and whether the attribute was found.</returns>
-    private static (ClassDeclarationSyntax Declaration, KeyValuePair<string, long>[]? Rules) GetClassDeclarationForSourceGen(
-        GeneratorSyntaxContext context)
+    private static (ClassDeclarationSyntax Declaration, Dictionary<string, long[]>? Rules)
+        GetClassDeclarationForSourceGen(
+            GeneratorSyntaxContext context)
     {
         var classDeclarationSyntax = (ClassDeclarationSyntax)context.Node;
-        KeyValuePair<string, long>[]? rules = null;
+        var rules = GetRulesFromAttributes(classDeclarationSyntax, context.SemanticModel);
+        return (classDeclarationSyntax, rules);
+    }
 
-        // Go through all attributes of the class.
-        foreach (var attributeListSyntax in classDeclarationSyntax.AttributeLists)
-        foreach (var attributeSyntax in attributeListSyntax.Attributes)
+    private static Dictionary<string, long[]>? GetRulesFromAttributes(
+        ClassDeclarationSyntax classDeclarationSyntax, SemanticModel semanticModel)
+    {
+        foreach (var attributeSyntax in classDeclarationSyntax.AttributeLists
+                     .SelectMany(attributeListSyntax => attributeListSyntax.Attributes))
         {
-            if (context.SemanticModel.GetSymbolInfo(attributeSyntax).Symbol is not IMethodSymbol attributeSymbol)
-            {
-                continue; // if we can't get the symbol, ignore it
-            }
+            if (!IsFizzBuzzWhizzAttribute(attributeSyntax, semanticModel))
+                continue;
 
-            var attributeName = attributeSymbol.ContainingType.ToDisplayString();
+            if (attributeSyntax.ArgumentList?.Arguments is not { Count: > 1 } arguments)
+                continue;
 
-            // Check the full name of the  attribute.
-            if (attributeName != $"{Namespace}.{AttributeName}")
+            var rules = ParseRules(arguments);
+            if (rules.Count > 0)
+                return rules;
+        }
+
+        return null;
+    }
+
+    private static bool IsFizzBuzzWhizzAttribute(AttributeSyntax attributeSyntax, SemanticModel semanticModel)
+    {
+        var symbol = semanticModel.GetSymbolInfo(attributeSyntax).Symbol as IMethodSymbol;
+        return symbol?.ContainingType.ToDisplayString() == $"{Namespace}.{AttributeName}";
+    }
+
+    private static Dictionary<string, long[]> ParseRules(SeparatedSyntaxList<AttributeArgumentSyntax> arguments)
+    {
+        var pairCount = arguments.Count / 2;
+        var rules = new Dictionary<long, StringBuilder>(pairCount);
+        for (var i = 0; i < pairCount * 2; i += 2)
+        {
+            if (arguments[i].Expression is not LiteralExpressionSyntax substituteLiteral ||
+                !substituteLiteral.IsKind(Microsoft.CodeAnalysis.CSharp.SyntaxKind.StringLiteralExpression) ||
+                arguments[i + 1].Expression is not LiteralExpressionSyntax numberLiteral ||
+                !numberLiteral.IsKind(Microsoft.CodeAnalysis.CSharp.SyntaxKind.StringLiteralExpression))
             {
                 continue;
             }
 
-            if (attributeSyntax.ArgumentList?.Arguments is not { Count: > 1 } arguments)
+            var substitute = substituteLiteral.Token.ValueText;
+            var numberString = numberLiteral.Token.ValueText;
+            if (!long.TryParse(numberString, out var number)) continue;
+
+            if (rules.ContainsKey(number))
             {
-                continue; //ignore attributes without arguments
+                // If the same number is already present, append the new substitute to the existing one.
+                rules[number].Append(substitute);
             }
-
-            var pairCount = arguments.Count / 2; // ignore an odd tail if it exists
-            var newRules = new List<KeyValuePair<string, long>>(pairCount);
-            for (var i = 0; i < pairCount * 2; i += 2)
+            else
             {
-                // the arguments should be paired strings
-                if (arguments[i].Expression is not LiteralExpressionSyntax keyLiteral ||
-                    !keyLiteral.IsKind(Microsoft.CodeAnalysis.CSharp.SyntaxKind.StringLiteralExpression) ||
-                    arguments[i + 1].Expression is not LiteralExpressionSyntax valueLiteral ||
-                    !valueLiteral.IsKind(Microsoft.CodeAnalysis.CSharp.SyntaxKind.StringLiteralExpression))
-                {
-                    // if the argument pair is not a string literals, ignore them
-                    continue;
-                }
-
-                var key = keyLiteral.Token.ValueText;
-                var valueString = valueLiteral.Token.ValueText;
-                if (long.TryParse(valueString, out var value))
-                {
-                    //every second argument should be parsable to long
-                    newRules.Add(new KeyValuePair<string, long>(key, value));
-                }
-            }
-
-            if (newRules.Count > 0)
-            {
-                rules = newRules.ToArray();
+                // Otherwise, create a new entry.
+                rules[number] = new StringBuilder(substitute);
             }
         }
 
-        return (classDeclarationSyntax, rules);
+        return rules
+            .ToLookup(p => p.Value.ToString())
+            .ToDictionary(
+                p => p.Key,
+                g => g.Select(p => p.Key).ToArray());
     }
 
     /// <summary>
@@ -142,7 +154,7 @@ public class {AttributeName} : System.Attribute
     private void GenerateCode(
         SourceProductionContext context,
         Compilation compilation,
-        ImmutableArray<(ClassDeclarationSyntax Declaration, KeyValuePair<string, long>[] Rules)> sites)
+        ImmutableArray<(ClassDeclarationSyntax Declaration, Dictionary<string, long[]> Rules)> sites)
     {
         // Go through all filtered class declarations.
         foreach (var (declaration, rules) in sites)
@@ -167,11 +179,15 @@ namespace {namespaceName};
 
 partial class {className}
 {{
-    public string Identity(long n) => n switch
+    public string Identity(long n)
     {{
+        if (n == 0)
+        {{
+            return ""0"";
+        }}
+
 {string.Join("\n", identityMethodBody)}
-        _ => n.ToString()
-    }};
+    }}
 }}
 ";
 
@@ -180,59 +196,90 @@ partial class {className}
         }
     }
 
-    private IEnumerable<string> GenerateIdentityBody(KeyValuePair<string, long>[] rules)
+    private struct FlaggedSubstitute
     {
-        var cases = new Dictionary<long, string>();
-        foreach (var combination in GetAllCombinations(rules))
-        {
-            long multiple = 1;
-            StringBuilder response = new();
-            foreach (var pair in combination)
-            {
-                multiple *= pair.Value;
-                response.Append(pair.Key);
-            }
+        public string Substitute { get; set; }
+        public bool Matched { get; set; }
+    }
 
-            if (cases.ContainsKey(multiple))
-            {
-                response.Append(", ");
-                response.Append(cases[multiple]);
-                cases[multiple] = response.ToString();
-            }
-            else
-            {
-                cases.Add(multiple, response.ToString());
-            }
+    /// <summary>
+    /// Generates the body of the Identity method as a switch expression incorporating pattern matching for all
+    /// significant values.
+    /// The modulus operation is performed exactly once based on the pre-calculated LCM of rules.
+    /// </summary>
+    private IEnumerable<string> GenerateIdentityBody(Dictionary<string, long[]> rules)
+    {
+        var substitutes = rules.ToDictionary(
+            rule => rule.Key,
+            rule => new FlaggedSubstitute{ Substitute = rule.Key, Matched = false });
+
+        var rulesByNumber =
+            rules.SelectMany(rule =>
+                rule.Value.Select(number => (number, substitutes[rule.Key])))
+                .ToDictionary(r => r.number, r => r.Item2);
+
+        var numbers = rulesByNumber.Keys.ToArray();
+
+        var mods = string.Join(", ", numbers.Select(number => $"n % {number}"));
+        yield return $"        return ({mods}) switch";
+        yield return "        {";
+        foreach (var perm in GetBooleanPermutations(rulesByNumber.Count))
+        {
+            var (pattern, value) = GetPatternAndSubstitute(perm, numbers, rulesByNumber);
+            yield return $"            {pattern} => \"{value}\",";
+            ClearFlags(substitutes);
         }
 
-        foreach (var @case in cases.OrderByDescending(c => c.Key))
+        yield return "            _ => n.ToString()";
+        yield return "        };";
+    }
+
+    private void ClearFlags(Dictionary<string, FlaggedSubstitute> substitutes)
+    {
+        foreach (var key in substitutes.Keys)
         {
-            yield return $"        {@case.Key} => \"{@case.Value}\",";
+            var substitute = substitutes[key];
+            substitute.Matched = false;
         }
     }
 
-    private static IEnumerable<IEnumerable<T>> GetAllCombinations<T>(IEnumerable<T> items)
+    private static (string Pattern, string Substitute) GetPatternAndSubstitute(
+        bool[] perm,
+        long[] numbers,
+        Dictionary<long, FlaggedSubstitute> rulesByNumber)
     {
-        var list = items.ToList();
-        var n = list.Count;
-        for (var length = 1; length <= n; length++)
+        var parts = new string[perm.Length];
+        var substitute = new StringBuilder();
+        for (var i = 0; i < perm.Length; i++)
         {
-            foreach (var combination in GetCombinations(list, length))
-                yield return combination;
+            var selected = perm[i];
+            parts[i] = selected ? "0" : "_";
+            if (!selected) continue;
+
+            var number = numbers[i];
+            var flaggedSubstitute = rulesByNumber[number];
+            if (flaggedSubstitute.Matched) continue;
+
+            flaggedSubstitute.Matched = true;
+            substitute.Append(flaggedSubstitute.Substitute);
         }
+
+        return
+        (
+            $"({string.Join(", ", parts)})",
+            substitute.ToString()
+        );
     }
 
-    private static IEnumerable<IEnumerable<T>> GetCombinations<T>(IList<T> list, int length)
+    private static IEnumerable<bool[]> GetBooleanPermutations(int n)
     {
-        if (length == 0)
-            yield return [];
-        else
+        var total = 1 << n;
+        for (int i = total - 1; i >= 1; i--)
         {
-            for (var i = 0; i <= list.Count - length; i++)
-            {
-                foreach (var tail in GetCombinations(list.Skip(i + 1).ToList(), length - 1))
-                    yield return new[] { list[i] }.Concat(tail);
-            }
+            var result = new bool[n];
+            for (int bit = 0; bit < n; bit++)
+                result[bit] = (i & (1 << bit)) != 0;
+            yield return result;
         }
     }
 }
