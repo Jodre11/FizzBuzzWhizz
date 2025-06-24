@@ -240,8 +240,6 @@ partial class {className}
             yield return arr;
         }
 
-        yield break;
-
         static int CountBits(int x)
         {
             int count = 0;
