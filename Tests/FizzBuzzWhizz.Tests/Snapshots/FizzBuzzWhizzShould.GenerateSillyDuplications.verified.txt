@@ -32,18 +32,11 @@ partial class SillyDuplications
 {
     public string Identity(long n)
     {
-        if (n == 0)
-        {
-            return "0";
-        }
-
-        return (n % 2, n % 4) switch
-        {
-            (0, 0) => "TwoTooFourFor",
-            (_, 0) => "FourFor",
-            (0, _) => "TwoToo",
-            _ => n.ToString()
-        };
+        if (n == 0) return "0";
+        if (n % 2 == 0 && n % 4 == 0) return "TwoTooFourFor";
+        if (n % 4 == 0) return "FourFor";
+        if (n % 2 == 0) return "TwoToo";
+        return n.ToString();
     }
 }
 

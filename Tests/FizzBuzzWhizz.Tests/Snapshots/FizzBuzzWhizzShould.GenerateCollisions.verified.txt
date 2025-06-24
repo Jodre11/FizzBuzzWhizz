@@ -32,30 +32,23 @@ partial class Collisions
 {
     public string Identity(long n)
     {
-        if (n == 0)
-        {
-            return "0";
-        }
-
-        return (n % 2, n % 3, n % 4, n % 5) switch
-        {
-            (0, 0, 0, 0) => "BangBangBangBang",
-            (_, 0, 0, 0) => "BangBangBang",
-            (0, _, 0, 0) => "BangBangBang",
-            (_, _, 0, 0) => "BangBang",
-            (0, 0, _, 0) => "BangBangBang",
-            (_, 0, _, 0) => "BangBang",
-            (0, _, _, 0) => "BangBang",
-            (_, _, _, 0) => "Bang",
-            (0, 0, 0, _) => "BangBangBang",
-            (_, 0, 0, _) => "BangBang",
-            (0, _, 0, _) => "BangBang",
-            (_, _, 0, _) => "Bang",
-            (0, 0, _, _) => "BangBang",
-            (_, 0, _, _) => "Bang",
-            (0, _, _, _) => "Bang",
-            _ => n.ToString()
-        };
+        if (n == 0) return "0";
+        if (n % 2 == 0 && n % 3 == 0 && n % 4 == 0 && n % 5 == 0) return "BangBangBangBang";
+        if (n % 3 == 0 && n % 4 == 0 && n % 5 == 0) return "BangBangBang";
+        if (n % 2 == 0 && n % 4 == 0 && n % 5 == 0) return "BangBangBang";
+        if (n % 2 == 0 && n % 3 == 0 && n % 5 == 0) return "BangBangBang";
+        if (n % 2 == 0 && n % 3 == 0 && n % 4 == 0) return "BangBangBang";
+        if (n % 4 == 0 && n % 5 == 0) return "BangBang";
+        if (n % 3 == 0 && n % 5 == 0) return "BangBang";
+        if (n % 3 == 0 && n % 4 == 0) return "BangBang";
+        if (n % 2 == 0 && n % 5 == 0) return "BangBang";
+        if (n % 2 == 0 && n % 4 == 0) return "BangBang";
+        if (n % 2 == 0 && n % 3 == 0) return "BangBang";
+        if (n % 5 == 0) return "Bang";
+        if (n % 4 == 0) return "Bang";
+        if (n % 3 == 0) return "Bang";
+        if (n % 2 == 0) return "Bang";
+        return n.ToString();
     }
 }
 

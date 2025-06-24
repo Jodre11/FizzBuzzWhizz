@@ -32,22 +32,15 @@ partial class FizzBuzzWhizzed
 {
     public string Identity(long n)
     {
-        if (n == 0)
-        {
-            return "0";
-        }
-
-        return (n % 3, n % 5, n % 7) switch
-        {
-            (0, 0, 0) => "FizzBuzzWhizz",
-            (_, 0, 0) => "BuzzWhizz",
-            (0, _, 0) => "FizzWhizz",
-            (_, _, 0) => "Whizz",
-            (0, 0, _) => "FizzBuzz",
-            (_, 0, _) => "Buzz",
-            (0, _, _) => "Fizz",
-            _ => n.ToString()
-        };
+        if (n == 0) return "0";
+        if (n % 3 == 0 && n % 5 == 0 && n % 7 == 0) return "FizzBuzzWhizz";
+        if (n % 5 == 0 && n % 7 == 0) return "BuzzWhizz";
+        if (n % 3 == 0 && n % 7 == 0) return "FizzWhizz";
+        if (n % 3 == 0 && n % 5 == 0) return "FizzBuzz";
+        if (n % 7 == 0) return "Whizz";
+        if (n % 5 == 0) return "Buzz";
+        if (n % 3 == 0) return "Fizz";
+        return n.ToString();
     }
 }
 
