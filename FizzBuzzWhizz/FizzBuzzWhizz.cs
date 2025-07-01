@@ -159,7 +159,7 @@ public class {AttributeName} : System.Attribute
         // Go through all filtered class declarations.
         foreach (var (declaration, rules) in sites)
         {
-            // We need to get semantic model of the class to retrieve metadata.
+            // We need to get a semantic model of the class to retrieve metadata.
             var semanticModel = compilation.GetSemanticModel(declaration.SyntaxTree);
 
             // Symbols allow us to get the compile-time information.
@@ -168,7 +168,7 @@ public class {AttributeName} : System.Attribute
 
             var namespaceName = classSymbol.ContainingNamespace.ToDisplayString();
 
-            // 'Identifier' means the token of the node. Get class name from the syntax node.
+            // 'Identifier' means the token of the node. Get a class name from the syntax node.
             var className = declaration.Identifier.Text;
 
             var identityMethodBody = GenerateIdentityBody(rules);
