@@ -1,6 +1,4 @@
-﻿using FizzBuzzWhizz;
-
-namespace FizzBuzzWhizz.Sample;
+﻿namespace FizzBuzzWhizz.Sample;
 
 // This code will not compile until you build the project with the Source Generators
 
